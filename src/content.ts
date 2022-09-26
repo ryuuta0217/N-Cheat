@@ -406,24 +406,26 @@ function convertStrTimeToSecond(str: string) {
 }
 
 const sections = getSections();
-  
-let requiredTimes = document.querySelectorAll("li.movie:not(.supplement) .movie-length");
+
 let requiredTime = 0;
 let requiredGoodTime = 0;
+let requiredRemainTime = 0;
 sections.forEach(data => {
     if (data.isMovie && !data.isSupplement) {
+        requiredTime += data.movieTimeSeconds;
         if (data.isGood) requiredGoodTime += data.movieTimeSeconds;
-        else requiredTime += data.movieTimeSeconds;
+        else requiredRemainTime += data.movieTimeSeconds;
     }
 });
-  
-let nPlusTimes = document.querySelectorAll("li.movie.supplement .movie-length");
+
 let nPlusTime = 0;
+let nPlusRemainTime = 0;
 let nPlusGoodTime = 0;
 sections.forEach(data => {
     if (data.isMovie && data.isSupplement) {
+        nPlusTime += data.movieTimeSeconds;
         if (data.isGood) nPlusGoodTime += data.movieTimeSeconds;
-        else nPlusTime += data.movieTimeSeconds;
+        else nPlusRemainTime += data.movieTimeSeconds;
     }
 });
   
@@ -450,24 +452,24 @@ const requiredGoodMinutes = Math.floor((requiredGoodTime % 3600) / 60);
 const requiredGoodSeconds = requiredGoodTime % 60;
 const requiredGoodPercent = Math.round((requiredGoodTime / requiredTime) * 100);
 
-const requiredRemainHours = Math.floor((requiredTime - requiredGoodTime) / 3600);
-const requiredRemainMinutes = Math.floor(((requiredTime - requiredGoodTime) % 3600) / 60);
-const requiredRemainSeconds = (requiredTime - requiredGoodTime) % 60;
+const requiredRemainHours = Math.floor(requiredRemainTime / 3600);
+const requiredRemainMinutes = Math.floor((requiredRemainTime % 3600) / 60);
+const requiredRemainSeconds = requiredRemainTime % 60;
 
-let requiredGoodStr = "視聴済み必修教材: " + (requiredGoodHours > 0 ? requiredGoodHours + "時間" : "") + (requiredGoodMinutes > 0 ? requiredGoodMinutes + "分" : "") + (requiredGoodSeconds > 0 ? requiredGoodSeconds + "秒" : "") + " (" + requiredGoodPercent + "%)";
-let requiredRemainingStr = "未視聴必修教材: " + (requiredRemainHours > 0 ? requiredRemainHours + "時間" : "") + (requiredRemainMinutes > 0 ? requiredRemainMinutes + "分" : "") + (requiredRemainSeconds > 0 ? requiredRemainSeconds + "秒" : "");
+let requiredGoodStr = "視聴済み必修教材: " + (requiredGoodHours > 0 ? requiredGoodHours + "時間" : "") + (requiredGoodMinutes > 0 ? requiredGoodMinutes + "分" : "") + requiredGoodSeconds + "秒" + " (" + requiredGoodPercent + "%)";
+let requiredRemainingStr = "未視聴必修教材: " + (requiredRemainHours > 0 ? requiredRemainHours + "時間" : "") + (requiredRemainMinutes > 0 ? requiredRemainMinutes + "分" : "") + requiredRemainSeconds + "秒";
 
 const nPlusGoodHours = Math.floor(nPlusGoodTime / 3600);
 const nPlusGoodMinutes = Math.floor((nPlusGoodTime % 3600) / 60);
 const nPlusGoodSeconds = nPlusGoodTime % 60;
 const nPlusGoodPercent = Math.round((nPlusGoodTime / nPlusTime) * 100);
 
-const nPlusRemainHours = Math.floor((nPlusTime - nPlusGoodTime) / 3600);
-const nPlusRemainMinutes = Math.floor(((nPlusTime - nPlusGoodTime) % 3600) / 60);
-const nPlusRemainSeconds = (nPlusTime - nPlusGoodTime) % 60;
+const nPlusRemainHours = Math.floor(nPlusRemainTime / 3600);
+const nPlusRemainMinutes = Math.floor((nPlusRemainTime % 3600) / 60);
+const nPlusRemainSeconds = nPlusRemainTime % 60;
 
-let nPlusGoodStr = "視聴済みNプラス教材: " + (nPlusGoodHours > 0 ? nPlusGoodHours + "時間" : "") + (nPlusGoodMinutes > 0 ? nPlusGoodMinutes + "分" : "") + (nPlusGoodSeconds > 0 ? nPlusGoodSeconds + "秒" : "") + " (" + nPlusGoodPercent + "%)";
-let nPlusRemainingStr = "未試聴Nプラス教材: " + (nPlusRemainHours > 0 ? nPlusRemainHours + "時間" : "") + (nPlusRemainMinutes > 0 ? nPlusRemainMinutes + "分" : "") + (nPlusRemainSeconds > 0 ? nPlusRemainSeconds + "秒" : "");
+let nPlusGoodStr = "視聴済みNプラス教材: " + (nPlusGoodHours > 0 ? nPlusGoodHours + "時間" : "") + (nPlusGoodMinutes > 0 ? nPlusGoodMinutes + "分" : "") + nPlusGoodSeconds + "秒" + " (" + nPlusGoodPercent + "%)";
+let nPlusRemainingStr = "未試聴Nプラス教材: " + (nPlusRemainHours > 0 ? nPlusRemainHours + "時間" : "") + (nPlusRemainMinutes > 0 ? nPlusRemainMinutes + "分" : "") + nPlusRemainSeconds + "秒";
 
 let injectView = document.getElementsByClassName('description');
 
@@ -484,11 +486,19 @@ injectView[0].innerHTML = "<div class='u-card'>" +
                               "この単元の進捗状況" +
                             "</div>" +
                             "<div class='u-card-inner'>" +
+                            "[合計]<br>" +
                               required + "<br>" +
+                              nPlus + "<br>" +
+                            "<br>" +
+                            "[必修]<br>" +
                               requiredGoodStr + "<br>" +
                               requiredRemainingStr + "<br>" +
+                            "<br>" +
+                            "[Nプラス]<br>" +
                               nPlusGoodStr + "<br>" +
                               nPlusRemainingStr + "<br>" +
+                            "<br>" +
+                            "[本数]<br>" +
                               "必修教材動画数: " + movieCount + "本<br>" +
                               "確認テストの数: " + testCount + "個" +
                             "</div>" +
