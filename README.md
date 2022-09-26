@@ -1,9 +1,7 @@
 # N-Cheat
 
 # インストール方法
-* `git clone` コマンドでcloneするか、Download ZIP でダウンロードしてください。
-![DownloadZIP](https://github.com/ryuuta0217/N-Cheat/blob/main/.github/download_zip.png?raw=true)
-* `chrome://extensions` を開き、`パッケージ化されていない拡張機能を読み込む` を押し、`dist` フォルダーを選択してください。
+[ここ](https://github.com/ryuuta0217/N-Cheat/blob/main/N-Cheat.crx?raw=true) から `N-Cheat.crx` をダウンロードして、Chromeにそのままドラッグしてください。
 
 # ビルド方法
 `npm run build` してください。
