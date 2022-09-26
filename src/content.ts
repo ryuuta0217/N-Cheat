@@ -1,60 +1,3 @@
-// 内部処理用
-// 通信環境が悪い場合は数値を増やすことを推奨します。[単位はミリ秒。]
-//
-// 右側のページが読み込まれてからの動画の各種イベントの登録までの遅延を設定します。
-const VIDEO_EVENT_REGISTER_DELAY: number = 3000;
-//
-// 動画の再生が終了した後に次の動画やテストがあるかをチェックするまでの遅延を設定します。
-const VIDEO_ENDED_SEARCH_NEXT_DELAY: number = 1500;
-//
-// Discord への通知用Webhook URLを指定します
-const DISCORD_WEBHOOK_URL: string = "";
-//
-// Discord への通知の際、メッセージの最初に挿入する文を指定します。
-// メンションの場合は <@!ユーザーID> の形式で入力するとメンションになります。
-const DISCORD_MENTION: string = "";
-//
-// ページを開いたとき、自動で再生を開始するかどうか [true/false]
-// true にすると、ページを開いたらすぐに動画の再生が始まります。(行うべきがテストではない場合)
-// false にすると、ページを開いた後に手動で動画の再生を始める必要があります。
-// デフォルト: true
-const START_PLAYBACK_WHEN_OPEN_PAGE: boolean = true;
-//
-// 自動で次の教材を再生するかどうか [true/false]
-// テスト回答後は、手動で再生を開始する必要があります。
-// デフォルト: true
-const USE_AUTO_NEXT: boolean = true;
-//
-// タブを変えたら勝手に一時停止するゴミみたいな対策に対する対策を使用するかどうか [true/false]
-// 有効にしといて損はないです。
-// デフォルト: true
-const USE_AUTO_PAUSE_UNBLOCK: boolean = true;
-//
-// 動画を飛ばしたときに戻る奴を抑制します。[true/false]
-// 動画を飛ばせるようになりますが、ちょっとずつ飛ばさないと視聴完了の判定をもらえません。
-// デフォルト: true
-const USE_SEEK_UNBLOCK: boolean = true;
-//
-// 動画の再生開始、終了を通知するかどうかを決定します。[true/false]
-// 自動再生有効時はfalseを推奨します。
-// デフォルト: false
-const NOTIFY_VIDEO_STATE_CHANGE: boolean = false;
-//
-// Discord に送信するメッセージのフォーマット。
-// %title% は動画の名前やテストの名前に置き換えられます。
-const DISCORD_PLAYBACK_STARTED_MESSAGE: string = DISCORD_MENTION + " 教材動画 `%title%` の再生を開始しました";
-const DISCORD_PLAYBACK_ENDED_MESSAGE: string = DISCORD_MENTION + " 教材動画 `%title%` の再生が終了しました";
-const DISCORD_TEST_MESSAGE: string = DISCORD_MENTION + " テスト `%title%` を受けてください";
-//
-// デスクトップ通知で使用する通知のタイトル。
-const DESKTOP_PLAYBACK_STARTED: string = "教材動画の再生を開始しました";
-const DESKTOP_PLAYBACK_ENDED: string = "教材動画の再生が終了しました";
-const DESKTOP_TEST: string = "テストを受けてください";
-//
-// 動画やテストのタイトルを見つけられなかったとき用。
-const UNKNOWN_VIDEO: string = "不明な動画";
-const UNKNOWN_TEST: string = "不明なテスト";
-//
 /* Logger */
 const Level = {
 	INFO: "INFO",
@@ -87,6 +30,27 @@ const ASCIIColor = {
 
 type ASCIIColor = typeof ASCIIColor[keyof typeof ASCIIColor];
 
+type Config = {
+    videoEndedSearchNextDelay: number;
+    useDesktopNotification: boolean;
+    useDiscordNotification: boolean;
+    discordWebhookUrl: string;
+    discordMention: string;
+    startPlaybackWhenOpenPage: boolean;
+    useAutoNext: boolean;
+    useAutoPauseUnblock: boolean;
+    useSeekUnblock: boolean;
+    notifyVideoStateChange: boolean;
+    discordPlaybackStartedMessage: string;
+    discordPlaybackEndedMessage: string;
+    discordTakeTestMessage: string;
+    desktopPlaybackStarted: string;
+    desktopPlaybackEnded: string;
+    desktopTakeTest: string;
+    unknownVideo: string;
+    unknownTest: string;
+};
+
 type ChapterData = {
 	title: string;
 	isSupplement: boolean;
@@ -107,8 +71,9 @@ function log(name: string, level: Level, content: string): void {
 }
 /* Logger End */
 
-function registerEventsToVideo(iFrame: HTMLIFrameElement) {
+async function registerEventsToVideo(iFrame: HTMLIFrameElement) {
 	log("iFrame", Level.INFO, "Checking iFrame contentWindow...");
+    const config: Config = await getSettings();
 
 	if (iFrame.contentWindow != null) {
 		log("iFrame", Level.INFO, "Successfully get iFrame document.");
@@ -126,7 +91,7 @@ function registerEventsToVideo(iFrame: HTMLIFrameElement) {
 			});
 			log("VideoPlayer", Level.INFO, 'Successfully registered "ended" event to target video!');
 
-			if (USE_AUTO_PAUSE_UNBLOCK) {
+			if (config.useAutoPauseUnblock) {
 				log("VideoPlayer", Level.INFO, 'Registering "pause" event to target video!');
 				targetVideo.addEventListener("pause", (event) => {
 					if (targetVideo.currentTime != targetVideo.duration) {
@@ -139,7 +104,7 @@ function registerEventsToVideo(iFrame: HTMLIFrameElement) {
 				log("VideoPlayer", Level.INFO, 'Successfully registered "pause" event to target video!');
 			}
 
-			if (USE_SEEK_UNBLOCK) {
+			if (config.useSeekUnblock) {
 				log("VideoPlayer", Level.INFO, 'Registering "seeking" event to target video!');
 				targetVideo.addEventListener("seeking", (event) => {
 					event.preventDefault();
@@ -162,13 +127,14 @@ function registerEventsToVideo(iFrame: HTMLIFrameElement) {
 	}
 }
 
-function sendNotify(): void {
+async function sendNotify() {
 	log("Notify", Level.INFO, "Notify process started...");
+    const config: Config = await getSettings();
 
 	log("Notify", Level.INFO, "Finding iFrame...");
 	const iFrame: HTMLIFrameElement = document.getElementById("modal-inner-iframe") as HTMLIFrameElement;
 
-	if (NOTIFY_VIDEO_STATE_CHANGE) {
+	if (config.notifyVideoStateChange) {
 		if (iFrame != null && iFrame.contentWindow != null) {
 			log("Notify", Level.INFO, "Successfully found iFrame!");
 
@@ -178,13 +144,13 @@ function sendNotify(): void {
 				title = titleElement.innerText;
 				log("Notify", Level.INFO, "Successfully found video title!");
 			} else {
-                title = UNKNOWN_VIDEO;
+                title = config.unknownVideo;
 				log("Notify", Level.WARN, "Failed to find video title!");
 			}
 
             log("Notify", Level.INFO, "Notifying video playback ended");
-            notifyDiscord(DISCORD_PLAYBACK_ENDED_MESSAGE.replace("%title%", title));
-            notifyDesktop(DESKTOP_PLAYBACK_ENDED, title);
+            if (config.useDiscordNotification) notifyDiscord(config.discordPlaybackEndedMessage.replace("%mention%", config.discordMention).replace("%title%", title));
+            if (config.useDesktopNotification) notifyDesktop(config.desktopPlaybackEnded, title);
             log("Notify", Level.INFO, "Successfuly sent video playback ended notify.");
 		} else {
 			log("Notify", Level.ERROR, "Cannot find iFrame");
@@ -192,7 +158,7 @@ function sendNotify(): void {
 		}
 	}
 
-	if (USE_AUTO_NEXT) {
+	if (config.useAutoNext) {
 		// 1500ミリ秒程度の遅延を設けて次の動画またはテストを検索する
 		// nnn.ed.nico: 視聴完了後、sectionsへの反映に大体1000ミリ秒かかる
 		setTimeout(() => {
@@ -201,10 +167,10 @@ function sendNotify(): void {
 			if (nextVideo != null) {
 				log("Automation", Level.INFO, "Next video found! clicking.");
 				click(nextVideo.clickTarget);
-				if (NOTIFY_VIDEO_STATE_CHANGE) {
+				if (config.notifyVideoStateChange) {
                     log("Notify", Level.INFO, "Notifying next video auto started playback.")
-					notifyDiscord(DISCORD_PLAYBACK_STARTED_MESSAGE.replace("%title%", nextVideo.title));
-                    notifyDesktop(DESKTOP_PLAYBACK_STARTED, nextVideo.title);
+					if (config.useDiscordNotification) notifyDiscord(config.discordPlaybackStartedMessage.replace("%mention%", config.discordMention).replace("%title%", nextVideo.title));
+                    if (config.useDesktopNotification) notifyDesktop(config.desktopPlaybackStarted, nextVideo.title);
                     log("Notify", Level.INFO, "Successfully sent auto playback started notify.");
 				}
 			} else {
@@ -212,20 +178,21 @@ function sendNotify(): void {
 				const nextTest: ChapterData | null = findNextTest();
 				if (nextTest != null) {
 					log("Automation", Level.INFO, "Next test found!, sending notify.");
-                    notifyDiscord(DISCORD_TEST_MESSAGE.replace("%title%", (nextTest != null ? nextTest.title : UNKNOWN_TEST)));
-                    notifyDesktop(DESKTOP_TEST, (nextTest != null ? nextTest.title : UNKNOWN_TEST));
+                    if (config.useDiscordNotification) notifyDiscord(config.discordTakeTestMessage.replace("%mention%", config.discordMention).replace("%title%", (nextTest != null ? nextTest.title : config.unknownTest)));
+                    if (config.useDesktopNotification) notifyDesktop(config.desktopTakeTest, (nextTest != null ? nextTest.title : config.unknownTest));
                     log("Automation", Level.INFO, "Successfully sent next test notify.");
 				}
 			}
-		}, VIDEO_ENDED_SEARCH_NEXT_DELAY);
+		}, config.videoEndedSearchNextDelay);
 	}
 }
 
-function notifyDiscord(content: string): void {
-    if (DISCORD_WEBHOOK_URL.length > 0) {
+async function notifyDiscord(content: string) {
+    const config: Config = await getSettings();
+    if (config.useDiscordNotification && config.discordWebhookUrl.length > 0 && config.discordWebhookUrl.startsWith("https://discord.com/api/webhooks/")) {
         log("Discord", Level.INFO, "Sending notification to discord.")
         const discord: XMLHttpRequest = new XMLHttpRequest();
-		discord.open("POST", DISCORD_WEBHOOK_URL);
+		discord.open("POST", config.discordWebhookUrl);
 		discord.setRequestHeader("Content-Type", "application/json");
         discord.addEventListener('readystatechange', (event) => {
             if (discord.readyState == 4) {
@@ -241,13 +208,15 @@ function notifyDiscord(content: string): void {
     }
 }
 
-function notifyDesktop(title: string, body: string): void {
-    const desktopNotification: Notification = new Notification(title, {
-        body: body,
-        icon: "https://www.nnn.ed.nico/favicon.ico",
-    });
-
-    setTimeout(desktopNotification.close.bind(desktopNotification), 5000);
+async function notifyDesktop(title: string, body: string) {
+    if ((await getSettings()).useDesktopNotification) {
+        const desktopNotification: Notification = new Notification(title, {
+            body: body,
+            icon: "https://www.nnn.ed.nico/favicon.ico",
+        });
+    
+        setTimeout(desktopNotification.close.bind(desktopNotification), 5000);
+    }
 }
 
 function getSections(): Array<ChapterData> {
@@ -383,13 +352,19 @@ if (document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement) 
 		childList: true, // 子要素の変更を追跡する
 	});
 
-	if (START_PLAYBACK_WHEN_OPEN_PAGE) {
-		const nextVideo: ChapterData | null = findNextVideo(false);
-		if (nextVideo != null) {
-			log("main", Level.INFO, "Auto playback starting.");
-			click(nextVideo.clickTarget);
-		}
-	}
+	getSettings().then((config) => {
+        if (config.startPlaybackWhenOpenPage) {
+            const nextVideo: ChapterData | null = findNextVideo(false);
+            if (nextVideo != null) {
+                log("main", Level.INFO, "Auto playback starting.");
+                click(nextVideo.clickTarget);
+            }
+        }
+    });
+}
+
+async function getSettings(): Promise<Config> {
+    return await chrome.storage.sync.get(null) as Config;
 }
 
 function convertStrTimeToSecond(str: string) {

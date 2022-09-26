@@ -1,5 +1,4 @@
 type Data = {
-    videoEventRegisterDelay: number;
     videoEndedSearchNextDelay: number;
     useDesktopNotification: boolean;
     useDiscordNotification: boolean;
@@ -42,7 +41,6 @@ async function initialize() {
 function setDefault(reload: boolean) {
     chrome.storage.sync.clear().then(() => {
         const defaultData: Data = {
-            videoEventRegisterDelay: 3000,
             videoEndedSearchNextDelay: 1500,
             useDesktopNotification: true,
             useDiscordNotification: false,
@@ -81,7 +79,6 @@ function load() {
         (document.getElementById("discord-webhook-url") as HTMLInputElement).value = data.discordWebhookUrl;
         (document.getElementById("discord-mention") as HTMLInputElement).value = data.discordMention;
 
-        (document.getElementById("video-event-register-delay") as HTMLInputElement).value = data.videoEventRegisterDelay;
         (document.getElementById("video-ended-search-next-delay") as HTMLInputElement).value = data.videoEndedSearchNextDelay;
 
         (document.getElementById("discord-playback-started-message") as HTMLInputElement).value = data.discordPlaybackStartedMessage;
@@ -98,13 +95,6 @@ function load() {
 }
 
 function save() {
-    let videoEventRegisterDelay: number;
-    try {
-        videoEventRegisterDelay = Number((document.getElementById("video-event-register-delay") as HTMLInputElement).value)
-    } catch {
-        videoEventRegisterDelay = 3000;
-    }
-
     let videoEndedSearchNextDelay: number;
     try {
         videoEndedSearchNextDelay = Number((document.getElementById("video-ended-search-next-delay") as HTMLInputElement).value);
@@ -122,7 +112,6 @@ function save() {
         useDiscordNotification: (document.getElementById("notify-discord") as HTMLInputElement).checked,
         discordWebhookUrl: (document.getElementById("discord-webhook-url") as HTMLInputElement).value,
         discordMention: (document.getElementById("discord-mention") as HTMLInputElement).value,
-        videoEventRegisterDelay: videoEventRegisterDelay,
         videoEndedSearchNextDelay: videoEndedSearchNextDelay,
         discordPlaybackStartedMessage: (document.getElementById("discord-playback-started-message") as HTMLInputElement).value,
         discordPlaybackEndedMessage: (document.getElementById("discord-playback-ended-message") as HTMLInputElement).value,
