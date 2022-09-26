@@ -29,6 +29,10 @@ window.onload = () => {
                 load();
             });
         });
+
+        (document.getElementById("reset") as HTMLButtonElement).onclick = () => {
+            setDefault(true);
+        };
     });
 }
 
