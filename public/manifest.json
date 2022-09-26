@@ -1,0 +1,14 @@
+{
+    "name": "N-Cheat",
+    "version": "1.0.2",
+    "manifest_version": 3,
+    "description": "「N予備校のサイトで、単元ごとに授業の残り時間や視聴時間を表示し、快適に勉強計画を立てられるように、サポートするChrome拡張機能」だったものを勝手にチート兵器に改造しました。",
+    "permissions": ["storage"],
+    "content_scripts": [{
+      "matches": ["https://www.nnn.ed.nico/courses/*/chapters/*"],
+      "js": [
+        "content.js"
+      ]
+    }]
+  }
+  
