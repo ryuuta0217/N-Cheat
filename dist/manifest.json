@@ -12,6 +12,9 @@
       "js": [
         "content.js"
       ]
-    }]
+    }],
+    "icons": {
+      "64": "nnn.ed.nico.png"
+    }
   }
   
