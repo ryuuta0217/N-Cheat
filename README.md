@@ -2,7 +2,7 @@
 
 # インストール方法
 * `git clone` コマンドでcloneするか、Download ZIP でダウンロードしてください。
-![DownloadZIP](https://raw.githubusercontent.com/ryuuta0217/N-Cheat/master/.github/download_zip.png)
+![DownloadZIP](https://github.com/ryuuta0217/N-Cheat/blob/main/.github/download_zip.png?raw=true)
 * `chrome://extensions` を開き、`パッケージ化されていない拡張機能を読み込む` を押し、`dist` フォルダーを選択してください。
 
 # ビルド方法
