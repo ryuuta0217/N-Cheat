@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <script src="popup.js"></script>
+        <meta charset="utf-8">
+        <style type="text/css">
+            #container {
+                min-width: 350px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <div id="settings-advanced">
+                <h3>基本設定</h3>
+                <input type="checkbox" id="start-playback-when-open-page">
+                <label for="start-playback-when-open-page">ページを開いたときに動画を自動で再生する</label>
+                <br>
+                <input type="checkbox" id="use-auto-next">
+                <label for="use-auto-next">自動で次の動画を再生</label>
+                <br>
+                <input type="checkbox" id="use-auto-pause-unblock">
+                <label for="use-auto-pause-unblock">タブ切り替えで一時停止しない</label>
+                <br>
+                <input type="checkbox" id="use-seek-unblock">
+                <label for="use-seek-unblock">再生位置を変更可能にする</label>
+            </div>
+            <div id="settings-notification">
+                <h3>通知設定</h3>
+                <input type="checkbox" id="notify-video-state-change">
+                <label for="notify-video-state-change">動画の再生/停止時に通知する</label>
+                <br>
+                <input type="checkbox" id="notify-desktop">
+                <label for="notify-desktop">デスクトップ通知を受け取る</label>
+                <br>
+                <input type="checkbox" id="notify-discord">
+                <label for="notify-discord">Discordに通知する</label>
+                <br>
+                <span>DiscordのWebhook URL <input type="text" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..."></span>
+                <br>
+                <span>Discordのメンション先 <input type="text" id="discord-mention" placeholder="<@!ユーザーID>"></span>
+            </div>
+            <div id="settings-internal">
+                <h3>内部設定</h3>
+                <span>動画にフックするまでの遅延 <input type="text" id="video-event-register-delay" style="width: 30px;"> ms</span>
+                <br>
+                <span>次の動画を探すまでの遅延 <input type="text" id="video-ended-search-next-delay" style="width: 30px;"> ms</span>
+            </div>
+            <div id="settings-messages-discord">
+                <h3>メッセージ設定(Discord)</h3>
+                <span>再生開始 <input type="text" id="discord-playback-started-message" style="width: 290px;"></span>
+                <br>
+                <span>再生終了 <input type="text" id="discord-playback-ended-message" style="width: 290px;"></span>
+                <br>
+                <span>テスト通知 <input type="text" id="discord-take-test-message" style="width: 278px;"></span>
+            </div>
+            <div id="settings-messages-desktop">
+                <h3>メッセージ設定(デスクトップ通知)</h3>
+                <span>再生開始 <input type="text" id="desktop-playback-started" style="width: 290px;"></span>
+                <br>
+                <span>再生終了 <input type="text" id="desktop-playback-ended" style="width: 290px;"></span>
+                <br>
+                <span>テスト通知 <input type="text" id="desktop-take-test" style="width: 278px;"></span>
+            </div>
+            <div id="settings-message">
+                <h3>メッセージ設定(共通)</h3>
+                <span>不明な動画 <input type="text" id="unknown-video"></span>
+                <br>
+                <span>不明なテスト <input type="text" id="unknown-test"></span>
+            </div>
+            <br>
+            <button type="button" onclick="setDefault(true);">初期設定に戻す</button>
+        </div> 
+    </body>
+</html>
