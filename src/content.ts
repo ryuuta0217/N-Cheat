@@ -57,7 +57,7 @@ type ChapterData = {
 	isMovie: boolean;
 	isOpened: boolean;
 	isGood: boolean;
-	isEvalutionTest: boolean;
+	isEvaluationTest: boolean;
 	isEssayTest: boolean;
 	isGateClosed: boolean;
     movieTimeSeconds: number;
@@ -214,7 +214,7 @@ async function notifyDesktop(title: string, body: string) {
             body: body,
             icon: "https://www.nnn.ed.nico/favicon.ico",
         });
-    
+
         setTimeout(desktopNotification.close.bind(desktopNotification), 5000);
     }
 }
@@ -238,7 +238,7 @@ function getSections(): Array<ChapterData> {
 			isGood: className.includes("good"), // 視聴/完了済
 			isMovie: className.includes("movie"), // 動画
 			isSupplement: className.includes("supplement"), // Nプラス教材
-			isEvalutionTest: className.includes("evaluation-test"), // 選択/記述テスト
+			isEvaluationTest: className.includes("evaluation-test"), // 選択/記述テスト
 			isEssayTest: className.includes("essay-test"), // 論述テスト
 			isOpened: anchors.length > 0 ? anchors[0].className.includes("is-selected") : false, // 今開いてる
 			isGateClosed: anchors.length > 0 ? anchors[0].className.includes("is-gate-closed") : false, // まだ開けない
@@ -277,7 +277,7 @@ function findNextVideo(findSupplement: boolean): ChapterData | null {
 
 function findNextTest(): ChapterData | null {
 	const result = getSections().filter((data) => {
-		return (data.isEssayTest || data.isEvalutionTest) && !data.isGateClosed && !data.isGood && !data.isOpened;
+		return (data.isEssayTest || data.isEvaluationTest) && !data.isGateClosed && !data.isGood && !data.isOpened;
 	});
 
 	if (result.length > 0) {
@@ -321,7 +321,7 @@ if (document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement) 
                     const opened: ChapterData | null = getOpenedSection();
                     if (opened == null) return;
 
-					if (!opened.isEssayTest && !opened.isEvalutionTest && opened.isMovie) {
+					if (!opened.isEssayTest && !opened.isEvaluationTest && opened.isMovie) {
                         log("iFrame", Level.INFO, "Finding VideoPlayer...");
                         if (iFrame.contentWindow.document.getElementById("video-player") instanceof HTMLMediaElement) {
                             log("iFrame", Level.INFO, "VideoPlayer already loaded, use this.");
@@ -348,7 +348,7 @@ if (document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement) 
 		} else {
 			log("MutationObserver", Level.ERROR, "Failed to find iFrame (#modal-inner-iframe)! Event is not registered.");
 		}
-	}).observe(document.querySelector('div[data-react-class="App.Modal"') as HTMLElement, {
+	}).observe(document.querySelector('div[data-react-class="App.Modal"]') as HTMLElement, {
 		childList: true, // 子要素の変更を追跡する
 	});
 
@@ -369,9 +369,9 @@ async function getSettings(): Promise<Config> {
 
 function convertStrTimeToSecond(str: string) {
     let splitted = str.split(":");
-  
+
     var seconds = 0;
-  
+
     if (splitted.length == 2) {
       seconds = (Number(splitted[0]) * 60)+Number(splitted[1]);
     } else if (splitted.length == 3) {
@@ -403,9 +403,9 @@ sections.forEach(data => {
         else nPlusRemainTime += data.movieTimeSeconds;
     }
 });
-  
+
 let allTime = requiredTime + nPlusTime;
-  
+
 const allHours = Math.floor(allTime/3600);
 const requiredHours = Math.floor(requiredTime/3600);
 const nPlusHours = Math.floor(nPlusTime/3600);
@@ -417,7 +417,7 @@ const nPlusMinutes = Math.floor((nPlusTime % 3600) / 60);
 const allSeconds = allTime % 60;
 const requiredSeconds = requiredTime % 60;
 const nPlusSeconds = nPlusTime % 60;
-  
+
 let all = "すべての教材: " + (allHours > 0 ? allHours + "時間" : "") + allMinutes + "分" + allSeconds + "秒";
 let required = "必修教材: " + (requiredHours > 0 ? requiredHours + "時間" : "") + requiredMinutes + "分" + requiredSeconds + "秒";
 let nPlus = "Nプラス教材: " + (nPlusHours > 0 ? nPlusHours + "時間" : "") + nPlusMinutes + "分" + nPlusSeconds + "秒";
