@@ -293,6 +293,7 @@ function click(target: HTMLElement): void {
 	target.dispatchEvent(event);
 }
 
+// force request desktop notification permission
 if (window.Notification.permission == "denied" || window.Notification.permission == "default") {
 	window.Notification.requestPermission().then(() => {
 		if (window.Notification.permission == "granted") {
