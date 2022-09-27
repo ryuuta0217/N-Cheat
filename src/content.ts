@@ -304,9 +304,7 @@ if (window.Notification.permission == "denied" || window.Notification.permission
 	});
 }
 
-if (document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement) {
-	log("main", Level.ERROR, "iFrame already appended, please reload page and execute this script before start playback.");
-} else {
+if (!(document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement)) {
 	new MutationObserver(() => {
 		log("MutationObserver", Level.INFO, "DOM change detected, registering 'load' event to iFrame (#modal-inner-iframe)!");
 
@@ -319,30 +317,30 @@ if (document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement) 
 				if (iFrame.contentWindow != null) {
 					log("iFrame", Level.INFO, "iFrame contentWindow found!");
 
-                    const opened: ChapterData | null = getOpenedSection();
-                    if (opened == null) return;
+					const opened: ChapterData | null = getOpenedSection();
+					if (opened == null) return;
 
 					if (!opened.isEssayTest && !opened.isEvaluationTest && opened.isMovie) {
-                        log("iFrame", Level.INFO, "Finding VideoPlayer...");
-                        if (iFrame.contentWindow.document.getElementById("video-player") instanceof HTMLMediaElement) {
-                            log("iFrame", Level.INFO, "VideoPlayer already loaded, use this.");
-                            registerEventsToVideo(iFrame);
-                        } else {
-                            log("iFrame", Level.INFO, "VideoPlayer not loaded, use setInterval to try find...");
-                            const repeater: NodeJS.Timer = setInterval(() => {
-                                if (iFrame.contentWindow != null) {
-                                    const videoPlayer = iFrame.contentWindow.document.getElementById("video-player");
-                                    if (videoPlayer != null && videoPlayer != undefined) {
-                                        log("iFrame/Timer", Level.INFO, "VideoPlayer loaded!");
-                                        clearInterval(repeater);
-                                        registerEventsToVideo(iFrame);
-                                    }
-                                }
-                            }, 10);
-                        }
-                    } else {
-                        log("iFrame", Level.INFO, "Opened iFrame is Essay or Evalution test, skipping.");
-                    }
+						log("iFrame", Level.INFO, "Finding VideoPlayer...");
+						if (iFrame.contentWindow.document.getElementById("video-player") instanceof HTMLMediaElement) {
+							log("iFrame", Level.INFO, "VideoPlayer already loaded, use this.");
+							registerEventsToVideo(iFrame);
+						} else {
+							log("iFrame", Level.INFO, "VideoPlayer not loaded, use setInterval to try find...");
+							const repeater: NodeJS.Timer = setInterval(() => {
+								if (iFrame.contentWindow != null) {
+									const videoPlayer = iFrame.contentWindow.document.getElementById("video-player");
+									if (videoPlayer != null && videoPlayer != undefined) {
+										log("iFrame/Timer", Level.INFO, "VideoPlayer loaded!");
+										clearInterval(repeater);
+										registerEventsToVideo(iFrame);
+									}
+								}
+							}, 10);
+						}
+					} else {
+						log("iFrame", Level.INFO, "Opened iFrame is Essay or Evalution test, skipping.");
+					}
 				}
 			});
 			log("MutationObserver", Level.INFO, "Successfully registered 'load' event to iFrame (#modal-inner-iframe)");
@@ -354,14 +352,14 @@ if (document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement) 
 	});
 
 	getSettings().then((config) => {
-        if (config.startPlaybackWhenOpenPage) {
-            const nextVideo: ChapterData | null = findNextVideo(false);
-            if (nextVideo != null) {
-                log("main", Level.INFO, "Auto playback starting.");
-                click(nextVideo.clickTarget);
-            }
-        }
-    });
+		if (config.startPlaybackWhenOpenPage) {
+			const nextVideo: ChapterData | null = findNextVideo(false);
+			if (nextVideo != null) {
+				log("main", Level.INFO, "Auto playback starting.");
+				click(nextVideo.clickTarget);
+			}
+		}
+	});
 }
 
 async function getSettings(): Promise<Config> {
