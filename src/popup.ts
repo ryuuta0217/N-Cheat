@@ -31,43 +31,44 @@ window.onload = () => {
         });
 
         (document.getElementById("reset") as HTMLButtonElement).onclick = () => {
-            setDefault(true);
+            setDefault(true).then(() => {
+                // reset completed or failed
+            });
         };
     });
 }
 
 async function initialize() {
     if ((await chrome.storage.sync.getBytesInUse()) == 0) {
-        setDefault(false);
+        await setDefault(false);
     }
 }
 
-function setDefault(reload: boolean) {
-    chrome.storage.sync.clear().then(() => {
-        const defaultData: Data = {
-            videoEndedSearchNextDelay: 1500,
-            useDesktopNotification: true,
-            useDiscordNotification: false,
-            discordWebhookUrl: "",
-            discordMention: "",
-            startPlaybackWhenOpenPage: false,
-            useAutoNext: true,
-            useAutoPauseUnblock: true,
-            useSeekUnblock: true,
-            notifyVideoStateChange: false,
-            discordPlaybackStartedMessage: "%mention% 教材動画 `%title%` の再生を開始しました",
-            discordPlaybackEndedMessage: "%mention% 教材動画 `%title%` の再生が終了しました",
-            discordTakeTestMessage: "%mention% テスト `%title%` を受けてください",
-            desktopPlaybackStarted: "教材動画の再生を開始しました",
-            desktopPlaybackEnded: "教材動画の再生が終了しました",
-            desktopTakeTest: "テストを受けてください",
-            unknownVideo: "不明な動画",
-            unknownTest: "不明なテスト"
-        };
-    
-        chrome.storage.sync.set(defaultData);
-        if (reload) load();
-    });
+async function setDefault(reload: boolean) {
+    await chrome.storage.sync.clear();
+    const defaultData: Data = {
+        videoEndedSearchNextDelay: 1500,
+        useDesktopNotification: true,
+        useDiscordNotification: false,
+        discordWebhookUrl: "",
+        discordMention: "",
+        startPlaybackWhenOpenPage: false,
+        useAutoNext: true,
+        useAutoPauseUnblock: true,
+        useSeekUnblock: true,
+        notifyVideoStateChange: false,
+        discordPlaybackStartedMessage: "%mention% 教材動画 `%title%` の再生を開始しました",
+        discordPlaybackEndedMessage: "%mention% 教材動画 `%title%` の再生が終了しました",
+        discordTakeTestMessage: "%mention% テスト `%title%` を受けてください",
+        desktopPlaybackStarted: "教材動画の再生を開始しました",
+        desktopPlaybackEnded: "教材動画の再生が終了しました",
+        desktopTakeTest: "テストを受けてください",
+        unknownVideo: "不明な動画",
+        unknownTest: "不明なテスト"
+    };
+
+    await chrome.storage.sync.set(defaultData);
+    if (reload) load();
 }
 
 function load() {
