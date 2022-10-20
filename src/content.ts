@@ -395,71 +395,58 @@ async function getConfig(): Promise<Config> {
     return await chrome.storage.sync.get() as Config;
 }
 
-const sections = getSections();
+function getTime(seconds: number): number[] {
+	let result: number[] = [0, 0, 0];
+	result[0] = Math.floor(seconds / 3600);
+	result[1] = Math.floor((seconds % 3600) / 60);
+	result[2] = seconds % 60;
+	return result;
+}
 
-let requiredTime = 0;
-let requiredGoodTime = 0;
-let requiredRemainTime = 0;
-sections.forEach(data => {
-    if (data.isMovie && !data.isSupplement) {
-        requiredTime += data.movieTimeSeconds;
-        if (data.isGood) requiredGoodTime += data.movieTimeSeconds;
-        else requiredRemainTime += data.movieTimeSeconds;
-    }
+function zeroPadding(num: number, length: number): string {
+	const zero: string = "0".repeat(length);
+	return (zero + num).slice(-length);
+}
+
+const sections: ChapterData[] = getSections();
+
+const movies: ChapterData[] = sections.filter(data => data.isMovie);
+const goodMovies: ChapterData[] = movies.filter(data => data.isGood);
+
+const requiredMovies: ChapterData[] = movies.filter(data => !data.isSupplement);
+const requiredGoodMovies: ChapterData[] = goodMovies.filter(data => !data.isSupplement);
+
+const supplementMovies: ChapterData[] = movies.filter(data => data.isSupplement);
+const supplementGoodMovies: ChapterData[] = goodMovies.filter(data => data.isSupplement);
+
+const tests: ChapterData[] = sections.filter(data => data.isEssayTest || data.isEvaluationTest);
+const goodTests: ChapterData[] = tests.filter(data => data.isGood);
+
+let requiredTimeSeconds = 0;
+let requiredGoodTimeSeconds = 0;
+let requiredRemainTimeSeconds = 0;
+requiredMovies.forEach(data => {
+	requiredTimeSeconds += data.movieTimeSeconds;
+	if (data.isGood) requiredGoodTimeSeconds += data.movieTimeSeconds;
+	else requiredRemainTimeSeconds += data.movieTimeSeconds;
 });
 
-let nPlusTime = 0;
-let nPlusRemainTime = 0;
-let nPlusGoodTime = 0;
-sections.forEach(data => {
-    if (data.isMovie && data.isSupplement) {
-        nPlusTime += data.movieTimeSeconds;
-        if (data.isGood) nPlusGoodTime += data.movieTimeSeconds;
-        else nPlusRemainTime += data.movieTimeSeconds;
-    }
+let supplementTimeSeconds = 0;
+let supplementRemainTimeSeconds = 0;
+let supplementGoodTimeSeconds = 0;
+supplementMovies.forEach(data => {
+	supplementTimeSeconds += data.movieTimeSeconds;
+	if (data.isGood) supplementGoodTimeSeconds += data.movieTimeSeconds;
+	else supplementRemainTimeSeconds += data.movieTimeSeconds;
 });
 
-let allTime = requiredTime + nPlusTime;
+const requiredTimes: number[] = getTime(requiredTimeSeconds);
+const requiredGoodTimes: number[] = getTime(requiredGoodTimeSeconds);
+const requiredRemainTimes: number[] = getTime(requiredRemainTimeSeconds);
 
-const allHours = Math.floor(allTime/3600);
-const requiredHours = Math.floor(requiredTime/3600);
-const nPlusHours = Math.floor(nPlusTime/3600);
-
-const allMinutes = Math.floor((allTime % 3600) / 60);
-const requiredMinutes = Math.floor((requiredTime % 3600) / 60);
-const nPlusMinutes = Math.floor((nPlusTime % 3600) / 60);
-
-const allSeconds = allTime % 60;
-const requiredSeconds = requiredTime % 60;
-const nPlusSeconds = nPlusTime % 60;
-
-let all = "すべての教材: " + (allHours > 0 ? allHours + "時間" : "") + allMinutes + "分" + allSeconds + "秒";
-let required = "必修教材: " + (requiredHours > 0 ? requiredHours + "時間" : "") + requiredMinutes + "分" + requiredSeconds + "秒";
-let nPlus = "Nプラス教材: " + (nPlusHours > 0 ? nPlusHours + "時間" : "") + nPlusMinutes + "分" + nPlusSeconds + "秒";
-
-const requiredGoodHours = Math.floor(requiredGoodTime / 3600);
-const requiredGoodMinutes = Math.floor((requiredGoodTime % 3600) / 60);
-const requiredGoodSeconds = requiredGoodTime % 60;
-const requiredGoodPercent = Math.round((requiredGoodTime / requiredTime) * 100);
-
-const requiredRemainHours = Math.floor(requiredRemainTime / 3600);
-const requiredRemainMinutes = Math.floor((requiredRemainTime % 3600) / 60);
-const requiredRemainSeconds = requiredRemainTime % 60;
-
-let requiredGoodStr = "視聴済み必修教材: " + (requiredGoodHours > 0 ? requiredGoodHours + "時間" : "") + (requiredGoodMinutes > 0 ? requiredGoodMinutes + "分" : "") + requiredGoodSeconds + "秒" + " (" + requiredGoodPercent + "%)";
-let requiredRemainingStr = "未視聴必修教材: " + (requiredRemainHours > 0 ? requiredRemainHours + "時間" : "") + (requiredRemainMinutes > 0 ? requiredRemainMinutes + "分" : "") + requiredRemainSeconds + "秒";
-
-const nPlusGoodHours = Math.floor(nPlusGoodTime / 3600);
-const nPlusGoodMinutes = Math.floor((nPlusGoodTime % 3600) / 60);
-const nPlusGoodSeconds = nPlusGoodTime % 60;
-const nPlusGoodPercent = Math.round((nPlusGoodTime / nPlusTime) * 100);
-
-const nPlusRemainHours = Math.floor(nPlusRemainTime / 3600);
-const nPlusRemainMinutes = Math.floor((nPlusRemainTime % 3600) / 60);
-const nPlusRemainSeconds = nPlusRemainTime % 60;
-
-let nPlusGoodStr = "視聴済みNプラス教材: " + (nPlusGoodHours > 0 ? nPlusGoodHours + "時間" : "") + (nPlusGoodMinutes > 0 ? nPlusGoodMinutes + "分" : "") + nPlusGoodSeconds + "秒" + " (" + nPlusGoodPercent + "%)";
-let nPlusRemainingStr = "未試聴Nプラス教材: " + (nPlusRemainHours > 0 ? nPlusRemainHours + "時間" : "") + (nPlusRemainMinutes > 0 ? nPlusRemainMinutes + "分" : "") + nPlusRemainSeconds + "秒";
+const supplementTimes: number[] = getTime(supplementTimeSeconds);
+const supplementGoodTimes: number[] = getTime(supplementGoodTimeSeconds);
+const supplementRemainTimes: number[] = getTime(supplementRemainTimeSeconds);
 
 let injectView = document.getElementsByClassName('description');
 
@@ -467,29 +454,22 @@ if(injectView === undefined) {
   location.reload();
 }
 
-let movieCount = document.querySelectorAll("li.movie:not(.supplement)").length;
-let allMovieCount = document.getElementsByClassName('movie').length;
-let testCount = document.getElementsByClassName('evaluation-test').length;
-
 injectView[0].innerHTML = "<div class='u-card'>" +
                             "<div class='u-list-header typo-list-title'>" +
                               "この単元の進捗状況" +
                             "</div>" +
                             "<div class='u-card-inner'>" +
-                            "[合計]<br>" +
-                              required + "<br>" +
-                              nPlus + "<br>" +
+                            "[必修教材]<br>" +
+                              "視聴済み動画本数: " + requiredGoodMovies.length + "/" + requiredMovies.length + "本<br>" +
+                              "受講済みテスト数: " + goodTests.length + "/" + tests.length + "個<br>" +
+                              "合計動画時間: " + (requiredTimes[0] > 0 ? zeroPadding(requiredTimes[0], 2) + "時間" : "") + zeroPadding(requiredTimes[1], 2) + "分" + zeroPadding(requiredTimes[2], 2) + "秒<br>" +
+                              "視聴済み動画時間: " + (requiredGoodTimes[0] > 0 ? zeroPadding(requiredGoodTimes[0], 2) + "時間" : "") + zeroPadding(requiredGoodTimes[1], 2) + "分" + zeroPadding(requiredGoodTimes[2], 2) + "秒<br>" +
+                              "未試聴動画時間: " + (requiredRemainTimes[0] > 0 ? zeroPadding(requiredRemainTimes[0], 2) + "時間" : "") + zeroPadding(requiredRemainTimes[1], 2) + "分" + zeroPadding(requiredRemainTimes[2], 2) + "秒<br>" +
                             "<br>" +
-                            "[必修]<br>" +
-                              requiredGoodStr + "<br>" +
-                              requiredRemainingStr + "<br>" +
-                            "<br>" +
-                            "[Nプラス]<br>" +
-                              nPlusGoodStr + "<br>" +
-                              nPlusRemainingStr + "<br>" +
-                            "<br>" +
-                            "[本数]<br>" +
-                              "必修教材動画数: " + movieCount + "本<br>" +
-                              "確認テストの数: " + testCount + "個" +
+                            "[Nプラス教材]<br>" +
+                              "視聴済み動画本数: " + supplementGoodMovies.length + "/" + supplementMovies.length + "本<br>" +
+                              "合計動画時間: " + (supplementTimes[0] > 0 ? zeroPadding(supplementTimes[0], 2) + "時間" : "") + zeroPadding(supplementTimes[1], 2) + "分" + zeroPadding(supplementTimes[2], 2) + "秒<br>" +
+                              "視聴済み動画時間: " + (supplementGoodTimes[0] > 0 ? zeroPadding(supplementGoodTimes[0], 2) + "時間" : "") + zeroPadding(supplementGoodTimes[1], 2) + "分" + zeroPadding(supplementGoodTimes[2], 2) + "秒<br>" +
+                              "未試聴動画時間: " + (supplementRemainTimes[0] > 0 ? zeroPadding(supplementRemainTimes[0], 2) + "時間" : "") + zeroPadding(supplementRemainTimes[1], 2) + "分" + zeroPadding(supplementRemainTimes[2], 2) + "秒<br>" +
                             "</div>" +
                           "</div>" + injectView[0].innerHTML;
