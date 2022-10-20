@@ -29,17 +29,11 @@ async function registerEventsToVideo(iFrame: HTMLIFrameElement): Promise<void> {
 
 			if ((await getConfig()).useSeekUnblock) {
 				log("VideoPlayer", Level.INFO, 'Registering "seeking" event to target video!');
-				targetVideo.addEventListener("seeking", (event) => {
-					event.preventDefault();
-					event.stopImmediatePropagation();
-				});
+				targetVideo.addEventListener("seeking", onVideoSeeked);
 				log("VideoPlayer", Level.INFO, 'Successfully registered "seeking" event to target video!');
 
 				log("VideoPlayer", Level.INFO, 'Registering "seeked" event to target video!');
-				targetVideo.addEventListener("seeked", (event) => {
-					event.preventDefault();
-					event.stopImmediatePropagation();
-				});
+				targetVideo.addEventListener("seeked", onVideoSeeked);
 				log("VideoPlayer", Level.INFO, 'Successfully registered "seeked" event to target video!');
 			}
 		} else {
@@ -312,6 +306,12 @@ async function onVideoPlaybackEnded(event: Event) {
 			}
 		}
 	}
+}
+
+function onVideoSeeked(event: Event) {
+	log("VideoPlayer", Level.INFO, "Video seeking detected, cancelling this.");
+	event.preventDefault();
+	event.stopImmediatePropagation();
 }
 /* END OF GLOBAL EVENT LISTENERS */
 
