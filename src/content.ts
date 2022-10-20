@@ -114,7 +114,7 @@ function notifyDesktop(config: Config, title: string, body: string) {
             icon: "https://www.nnn.ed.nico/favicon.ico",
         });
 
-        setTimeout(desktopNotification.close.bind(desktopNotification), 5000);
+        setTimeout(desktopNotification.close.bind(desktopNotification), 3000);
     }
 }
 
