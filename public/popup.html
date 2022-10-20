@@ -4,8 +4,46 @@
         <script src="popup.js"></script>
         <meta charset="utf-8">
         <style type="text/css">
+            ::-webkit-scrollbar {
+                display: none;
+            }
+
             #container {
                 min-width: 350px;
+            }
+
+            input {
+                vertical-align: bottom;
+            }
+
+            .hover-text {
+                position: relative;
+                border-bottom: 1px dotted black;
+            }
+
+            .hover-text:before {
+                content: attr(hover);
+                visibility: hidden;
+                opacity: 0;
+                min-width: 325px;
+                width: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                text-align: center;
+                border-radius: 5px;
+                padding: 5px;
+                transition: opacity .5s ease-in-out;
+
+                position: absolute;
+                z-index: 1;
+                left: 0;
+                top: 110%;
+            }
+
+            .hover-text:hover:before {
+                opacity: 1;
+                transition: opacity .25s ease-in-out;
+                visibility: visible;
             }
         </style>
     </head>
@@ -14,21 +52,21 @@
             <p style="color: rgb(255, 0, 0);">一部の設定は再読み込みするまで適用されません!</p>
             <div id="settings-advanced">
                 <h3 style="margin: 0">基本設定</h3>
-                <label><input type="checkbox" id="start-playback-when-open-page" />ページを開いたときに動画を自動で再生する</label><br>
-                <label><input type="checkbox" id="use-auto-next" />自動で次の動画を再生</label><br>
-                <label><input type="checkbox" id="use-auto-next-contains-supplements" />自動再生にNプラス教材を含める</label><br>
-                <label><input type="checkbox" id="use-auto-next-not-good-only" />未試聴の動画のみを自動再生する</label><br>
-                <label><input type="checkbox" id="use-auto-pause-unblock" />タブ切り替えで一時停止しない</label><br>
-                <label><input type="checkbox" id="use-seek-unblock" />再生位置を変更可能にする</label>
+                <label><input type="checkbox" id="start-playback-when-open-page" /><span class="hover-text" hover="N予備校の教材ページを開いたときに、教材動画の再生を自動で開始します。テストを受ける必要がある場合は何も起きません。">[?]</span> ページを開いたときに動画を自動で再生する</label><br>
+                <label><input type="checkbox" id="use-auto-next" /><span class="hover-text" hover="教材動画の再生が終わった際、次の動画を自動的に再生します。テストを受ける必要がある場合はテストが開かれ、通知されます。">[?]</span> 自動で次の動画を再生</label><br>
+                <label><input type="checkbox" id="use-auto-next-contains-supplements" /><span class="hover-text" hover="「自動で次の動画を再生」が有効の時、Nプラス教材を自動再生の対象に含めるかを決定します。">[?]</span> 自動再生にNプラス教材を含める</label><br>
+                <label><input type="checkbox" id="use-auto-next-not-good-only" /><span class="hover-text" hover="「自動で次の動画を再生」が有効の時、自動再生する動画を未試聴の動画のみにするかを決定します。次の動画が視聴済みの場合は、未試聴の動画を探して再生します。">[?]</span> 未試聴の動画のみを自動再生する</label><br>
+                <label><input type="checkbox" id="use-auto-pause-unblock" /><span class="hover-text" hover="タブやウィンドウを切り替えると動画が一時停止されるゴミ仕様を回避します。超稀に動作しません。">[?]</span> タブ切り替えで一時停止しない</label><br>
+                <label><input type="checkbox" id="use-seek-unblock" /><span class="hover-text" hover="動画の再生位置を飛ばせるようにします。最後のほうに飛ばしたからと言って視聴完了にはなりません。少しずつ飛ばすと視聴完了になる場合があります。">[?]</span> 再生位置を変更可能にする</label>
             </div>
             <br>
             <div id="settings-notification">
                 <h3 style="margin: 0">通知設定</h3>
-                <label><input type="checkbox" id="notify-video-state-change" />動画の再生/停止時に通知する</label><br>
-                <label><input type="checkbox" id="notify-desktop" />デスクトップ通知を受け取る</label><br>
-                <label><input type="checkbox" id="notify-discord" />Discordに通知する</label><br>
-                <label>DiscordのWebhook URL <input type="text" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..."></label><br>
-                <label>Discordのメンション先 <input type="text" id="discord-mention" placeholder="<@!ユーザーID>"></label>
+                <label><input type="checkbox" id="notify-video-state-change" /><span class="hover-text" hover="動画の再生が開始、終了した際にも通知を送信するかを決定します。自動再生が有効の時は通知が荒れるのでオフ推奨です。">[?]</span> 動画の再生/停止時に通知する</label><br>
+                <label><input type="checkbox" id="notify-desktop" /><span class="hover-text" hover="動画の再生開始、終了通知やテスト受講通知をWeb通知として受け取るかを決定します。macOS環境下では、Chromeに通知権限が付与されている必要があります。">[?]</span> デスクトップ通知を受け取る</label><br>
+                <label><input type="checkbox" id="notify-discord" /><span class="hover-text" hover="以下で指定するWebhook URLを用いて、Discordサーバーに対して通知を送信するかを決定します。仲間にレポートを促されたいときにお勧めです。">[?]</span> Discordに通知する</label><br>
+                <label><span class="hover-text" hover="通知を送信するDiscordチャンネルのWebhook URLを指定します。チャンネルの編集→連携サービス→ウェブフックで作成できます。">[?]</span> DiscordのWebhook URL <input type="text" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..."></label><br>
+                <label><span class="hover-text" hover="通知を送信する際、メッセージの先頭に付ける文字(メンション)を決定します。<@!ユーザーID>の形式で入力します。ユーザーIDは、Discordの設定→詳細設定→開発者モードを有効にしてから、メンバーリストなどの自分の名前を右クリックして「IDをコピー」すると入手できます。">[?]</span> Discordのメンション先 <input type="text" id="discord-mention" placeholder="<@!ユーザーID>"></label>
             </div>
             <br>
             <!-- <div id="settings-internal">
