@@ -161,7 +161,7 @@ function getOpenedSection(): ChapterData | null {
     }
 }
 
-function getNextRequiredChapter(supplement: boolean, notGoodOnly: boolean): ChapterData | null {
+function getNextChapter(supplement: boolean, notGoodOnly: boolean): ChapterData | null {
 	log("Chapter", Level.INFO, "Finding next required chapter...");
 	const chapters: Array<ChapterData> = getSections().filter((data => (data.isMovie || data.isEvaluationTest || data.isEssayTest) && (supplement ? data.isSupplement : !data.isSupplement)));
 	log("Chapter", Level.INFO, "Got " + chapters.length + " chapters.");
@@ -288,7 +288,7 @@ async function onVideoPlaybackEnded(event: Event) {
 
 	if (config.useAutoNext) {
 		log("Automation", Level.INFO, "useAutoNext is active, finding next chapter...")
-		const nextChapter: ChapterData | null = getNextRequiredChapter(config.useAutoNextContainsSupplements, config.useAutoNextNotGoodOnly);
+		const nextChapter: ChapterData | null = getNextChapter(config.useAutoNextContainsSupplements, config.useAutoNextNotGoodOnly);
 		if (nextChapter != null) {
 			log("Automation", Level.INFO, "Chapter found: " + nextChapter.title);
 			if (!nextChapter.isGateClosed) {
