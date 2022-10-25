@@ -1,5 +1,5 @@
-import { Config } from "./objects";
 import { log, Level } from "./logger";
+import { Config } from "./config";
 
 window.onload = () => {
     initialize().then(() => {

@@ -1,5 +1,6 @@
-import { Config, ChapterData } from "./objects";
+import { ChapterData } from "./objects";
 import { log, Level } from "./logger";
+import { Config } from "./config";
 
 async function registerEventsToVideo(iFrame: HTMLIFrameElement): Promise<void> {
 	log("iFrame", Level.INFO, "Checking iFrame contentWindow...");
