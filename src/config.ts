@@ -52,7 +52,7 @@ export async function setDefault() {
 
 export async function initialize() {
     if ((await chrome.storage.sync.getBytesInUse()) == 0) {
-        log("Popup", Level.INFO, "Configuration not found, writing default configuration.");
+        log("Config", Level.INFO, "Configuration not found, writing default configuration.");
         await setDefault();
     }
 }
