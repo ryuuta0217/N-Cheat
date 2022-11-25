@@ -1,6 +1,6 @@
 import { ChapterData } from "./objects";
 import { log, Level } from "./logger";
-import { Config } from "./config";
+import {Config, getConfig} from "./config";
 
 async function registerEventsToVideo(iFrame: HTMLIFrameElement): Promise<void> {
 	log("iFrame", Level.INFO, "Checking iFrame contentWindow...");
@@ -161,12 +161,21 @@ function getNextChapter(supplement: boolean, notGoodOnly: boolean): ChapterData 
 	const chapters: Array<ChapterData> = getSections().filter((data => (data.isMovie || data.isEvaluationTest || data.isEssayTest) && (supplement ? data.isSupplement : !data.isSupplement)));
 	log("Chapter", Level.INFO, "Got " + chapters.length + " chapters.");
 
-	const currentPos: number = chapters.findIndex((value, number, list) => {
+	const currentPos: number = chapters.findIndex((value: ChapterData, number: number, list: ChapterData[]) => {
 		return value.isOpened;
 	});
-	log("Chapter", Level.INFO, "Currently opened chapter index is " + currentPos);
 
-	let nextPos = currentPos + 1;
+	let nextPos: number;
+	if (currentPos != -1) {
+		log("Chapter", Level.INFO, "Currently opened chapter index is " + currentPos);
+		nextPos = currentPos + 1;
+	} else {
+		log("Chapter", Level.INFO, "Currently not opened chapter, gathering next pos");
+		nextPos = chapters.findIndex((value: ChapterData, number: number, list: ChapterData[]) => {
+			return !value.isGateClosed && ((notGoodOnly && !value.isGood) || (!notGoodOnly && value.isGood));
+		});
+	}
+
 	log("Chapter", Level.INFO, "Next chapter index is " + nextPos);
 	if (nextPos < chapters.length) {
 		let nextChapter: ChapterData | null = chapters[nextPos];
@@ -195,27 +204,26 @@ function getNextChapter(supplement: boolean, notGoodOnly: boolean): ChapterData 
 }
 
 function getNextVideo(supplement: boolean): ChapterData | null {
-	const result = getSections().filter(data => (data.isMovie || data.isEvaluationTest || data.isEssayTest) && (supplement ? data.isSupplement : !data.isSupplement))/*.filter((data) => {
-		return data.isMovie && !data.isOpened && !data.isGood && !data.isGateClosed && ((supplement && data.isSupplement) || !data.isSupplement);
-	})*/;
+	const result = getSections().filter(data => (data.isMovie || data.isEvaluationTest || data.isEssayTest) && (supplement ? data.isSupplement : !data.isSupplement));
 
-	const currentPos: number = result.findIndex((value, number, list) => {
+	const currentPos: number = result.findIndex((value: ChapterData, number: number, list: ChapterData[]) => {
 		return value.isOpened;
-	});
+	}); // 教材を開いていたらその位置、開いていなかったら-1
 
-	const nextPos = currentPos + 1;
+	let nextPos: number;
+	if (currentPos != -1) { // 教材を開いている場合
+		nextPos = currentPos + 1;
+	} else { // 教材を何も開いていない場合
+		nextPos = result.findIndex((value: ChapterData, number: number, list: ChapterData[]) => {
+			return !value.isGateClosed && !value.isGood;
+		});
+	}
 
-	if (nextPos <= (result.length - 1)) {
+	if (nextPos > 0 && nextPos < result.length) {
 		const nextData: ChapterData = result[nextPos];
-		if (nextData.isMovie) return nextData;
+		if (nextData.isMovie && !nextData.isGateClosed) return nextData;
 	}
 	return null;
-
-	/*if (result.length > 0) {
-		return result[0];
-	} else {
-		return null;
-	}*/
 }
 
 function getNextTest(): ChapterData | null {
@@ -375,25 +383,14 @@ if (!(document.getElementById("modal-inner-iframe") instanceof HTMLIFrameElement
 	});
 
 	getConfig().then((config) => {
-		if (config.startPlaybackWhenOpenPage) {
-			const nextVideo: ChapterData | null = getNextVideo(false);
-			if (nextVideo != null) {
-				playNextVideo().then((playbackStarted) => {
-					if (playbackStarted) {
-						log("main", Level.INFO, "Auto playback starting.");
-					} else {
-
-					}
-				});
-			} else {
-				log("main", Level.WARN, "Failed to auto playback.")
+		if (config.autoOpenChapterWhenOpenPage) {
+			const nextChapter: ChapterData | null = getNextChapter(config.useAutoNextContainsSupplements, config.useAutoNextNotGoodOnly);
+			if (nextChapter != null) {
+				log("main", Level.INFO, "Auto clicking next chapter.");
+				click(nextChapter.clickTarget);
 			}
 		}
 	});
-}
-
-async function getConfig(): Promise<Config> {
-    return await chrome.storage.sync.get() as Config;
 }
 
 function getTime(seconds: number): number[] {

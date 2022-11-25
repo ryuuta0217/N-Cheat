@@ -1,31 +1,27 @@
 import { Level, log } from "./logger";
-import { Config, initialize, setDefault } from "./config";
+import {Config, CONFIG_VERSION, getConfig, initialize, setDefault} from "./config";
 
 window.onload = () => {
-    initialize().then(() => {
-        log("Popup", Level.INFO, "Initialize completed, loading configuration.");
-        load();
+    load();
 
-        document.querySelectorAll("input").forEach((element: HTMLInputElement) => {
-            element.addEventListener("input", () => {
-                save();
-                load();
-            });
+    document.querySelectorAll("input").forEach((element: HTMLInputElement) => {
+        element.addEventListener("input", () => {
+            save();
+            load();
         });
-
-        (document.getElementById("reset") as HTMLButtonElement).onclick = () => {
-            setDefault().then(() => {
-                load();
-                log("Popup", Level.INFO, "Configuration reset.")
-            });
-        };
     });
+
+    (document.getElementById("reset") as HTMLButtonElement).onclick = () => {
+        setDefault().then(() => {
+            load();
+            log("Popup", Level.INFO, "Configuration reset.")
+        });
+    };
 }
 
 function load() {
-    chrome.storage.sync.get(null, (raw) => {
-        const config = raw as Config;
-        (document.getElementById("start-playback-when-open-page") as HTMLInputElement).checked = config.startPlaybackWhenOpenPage;
+    getConfig().then((config: Config) => {
+        (document.getElementById("auto-open-chapter-when-open-page") as HTMLInputElement).checked = config.autoOpenChapterWhenOpenPage;
         (document.getElementById("use-auto-next") as HTMLInputElement).checked = config.useAutoNext;
         (document.getElementById("use-auto-next-contains-supplements") as HTMLInputElement).checked = config.useAutoNextContainsSupplements;
         (document.getElementById("use-auto-next-not-good-only") as HTMLInputElement).checked = config.useAutoNextNotGoodOnly;
@@ -54,7 +50,8 @@ function load() {
 
 function save() {
     const config: Config = {
-        startPlaybackWhenOpenPage: (document.getElementById("start-playback-when-open-page") as HTMLInputElement).checked,
+        version: CONFIG_VERSION,
+        autoOpenChapterWhenOpenPage: (document.getElementById("auto-open-chapter-when-open-page") as HTMLInputElement).checked,
         useAutoNext: (document.getElementById("use-auto-next") as HTMLInputElement).checked,
         useAutoNextContainsSupplements: (document.getElementById("use-auto-next-contains-supplements") as HTMLInputElement).checked,
         useAutoNextNotGoodOnly: (document.getElementById("use-auto-next-not-good-only") as HTMLInputElement).checked,
