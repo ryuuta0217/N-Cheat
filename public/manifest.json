@@ -6,6 +6,10 @@
     "permissions": [
         "storage"
     ],
+    "host_permissions": [
+        "https://www.nnn.ed.nico/*",
+        "https://api.nnn.ed.nico/*"
+    ],
     "action": {
         "default_popup": "popup.html"
     },
